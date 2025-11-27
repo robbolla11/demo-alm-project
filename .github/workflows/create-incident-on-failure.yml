@@ -1,0 +1,21 @@
+name: Create Incident on CI Failure
+
+on:
+  workflow_run:
+    workflows: ["CI - Tests"]
+    types:
+      - completed
+
+jobs:
+  create-issue-if-failed:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.head_branch == 'main' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create GitHub Issue for CI Failure
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "[INCIDENT][CI FAILURE] Tests fallaron en main - ${{ github.event.workflow_run.head_sha }}"
+          content-filepath: .github/ISSUE_TEMPLATE/auto_ci_incident.md
+          labels: incident, ci-failure, triage-needed
